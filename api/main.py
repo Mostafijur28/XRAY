@@ -43,6 +43,6 @@ def filter_heavy(threshold: float = 0.9):
     for steps in STEPS.values():
         for s in steps:
             ratio = s["output_count"] / max(s["input_count"], 1)
-            if s["step_type"] == "filter" and ratio < (1 - threshold):
+            if s["step_type"] == "filter" and ratio <= (1 - threshold):
                 results.append(s)
     return results

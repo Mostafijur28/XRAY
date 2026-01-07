@@ -1,5 +1,8 @@
 import requests
 from .context import RunContext, StepContext
+import logging
+
+logger = logging.getLogger("xray")
 
 
 class XRayClient:
@@ -40,6 +43,7 @@ class XRayClient:
     def _post(self, path, payload):
         try:
             requests.post(f"{self.service_url}{path}", json=payload, timeout=0.1)
-        except Exception:
+        except Exception as e:
             # fail-open: never break the pipeline
+            logger.warning(f"X-Ray POST failed: {path} | error={e}")
             pass
