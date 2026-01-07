@@ -33,28 +33,21 @@ X-Ray runs alongside it and never interferes.
 
 Pipeline → X-Ray SDK → X-Ray Backend → Debugging & Analysis
 
-Setup Instructions
-1. Install dependencies
+**Setup Instructions**
+1. Install dependencies : **pip install -r requirements.txt**
 
-pip install -r requirements.txt
-
-2. Start the X-Ray backend
-
-uvicorn api.main:app
+2. Start the X-Ray backend : **uvicorn api.main:app**
 
 Run without --reload when using in-memory storage.
 
-3. Run the example pipeline
-
-python example/competitor_pipeline.py
+3. Run the example pipeline  : **python example/competitor_pipeline.py**
 
 The pipeline prints nothing by design.
 All observability data is retrieved via API queries.
 
 4. Inspect captured data
 
-List runs
-GET /runs
+List runs : * GET /runs
 
 Inspect a run and its steps
 GET /runs/{run_id}
