@@ -1,58 +1,104 @@
-Setup Instructions
+## X-Ray – Decision Observability for Multi-Step Pipelines
 
-Install dependencies
+### Overview
+X-Ray provides decision-level observability for complex, multi-step systems such as LLM-driven retrieval, filtering, ranking, and selection pipelines.
+
+Traditional logs and tracing answer what happened.
+X-Ray answers why a particular output was produced.
+
+### Why X-Ray?
+
+Modern pipelines are:
+
+Multi-stage
+
+Non-deterministic (LLMs, heuristics)
+
+Hard to debug after the fact
+
+When the final output is wrong, it’s difficult to identify:
+
+Which step failed
+
+Whether filters were too aggressive
+
+Whether ranking logic behaved incorrectly
+
+X-Ray captures decision context at each step and makes it queryable after execution.
+
+### High-Level Flow
+
+Business pipeline runs normally.
+X-Ray runs alongside it and never interferes.
+
+Pipeline → X-Ray SDK → X-Ray Backend → Debugging & Analysis
+
+Setup Instructions
+1. Install dependencies
 
 pip install -r requirements.txt
 
-Start the X-Ray backend
+2. Start the X-Ray backend
 
 uvicorn api.main:app
 
 Run without --reload when using in-memory storage.
 
-Run the example competitor pipeline
+3. Run the example pipeline
 
 python example/competitor_pipeline.py
 
-Inspect captured data
+The pipeline prints nothing by design.
+All observability data is retrieved via API queries.
 
-List runs: GET /runs
+4. Inspect captured data
 
-Inspect a run: GET /runs/{run_id}
+List runs
+GET /runs
 
-View decisions: GET /runs/{run_id}/decisions
+Inspect a run and its steps
+GET /runs/{run_id}
 
-Brief Explanation of the Approach
+View decisions for a run
+GET /runs/{run_id}/decisions
 
-X-Ray is designed as a decision observability layer that runs alongside existing pipelines without changing their behavior.
-Developers instrument decision boundaries (such as filtering, ranking, or LLM evaluation) using a lightweight SDK.
+### Brief Explanation of the Approach
 
-The SDK captures structured context—inputs, outputs, filters applied, and optional per-candidate reasoning—and sends it asynchronously to a backend service.
-The backend stores this data and exposes query APIs, enabling post-hoc debugging of why a specific output was produced.
+X-Ray instruments decision boundaries, not function calls.
 
-Execution and debugging are intentionally decoupled to ensure safety, low overhead, and zero impact on production behavior.
+Developers wrap:
 
-Known Limitations / Future Improvements
-Known Limitations
+A pipeline execution as a Run
 
-In-memory storage is volatile and limited to a single process (demo-only).
+Each decision boundary as a Step
 
-No UI; analysis is performed via API queries.
+Optional per-candidate reasoning as Decisions
+
+The SDK sends this structured context asynchronously to a backend service.
+The backend stores and exposes it through query APIs for post-hoc debugging.
+
+Execution and debugging are fully decoupled to ensure safety and low overhead.
+
+### Known Limitations
+
+In-memory storage is volatile and single-process (demo-only).
+
+No UI; analysis is API-driven.
 
 Per-candidate decision capture is manual and opt-in.
 
 No authentication or access control.
 
-Future Improvements
+### Future Improvements
 
-Persistent, analytics-optimized storage (e.g., PostgreSQL or ClickHouse).
+Persistent, analytics-optimized storage (PostgreSQL / ClickHouse).
 
-Schema evolution and versioning for long-running pipelines.
+Schema evolution and versioning.
 
-Privacy and redaction controls for sensitive data.
+Privacy and redaction controls.
 
-Visualization tools (timelines, diffs, aggregates).
+Visualization (timelines, diffs, aggregates).
 
-Prompt and model version tracking for LLM-based steps.
+Prompt and model version tracking for LLM steps.
 
-Adaptive sampling policies to balance cost and observability.
+Adaptive sampling policies.

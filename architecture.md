@@ -48,26 +48,25 @@ Unlike logs or tracing—which answer *what happened*—X-Ray answers **why a pa
 │  - why rejected?         │
 │  - where logic failed?   │
 └──────────────────────────┘
+```
 
+#### Key property: Execution and debugging are decoupled. The pipeline never blocks on observability.
 
-Key property: Execution and debugging are decoupled. The pipeline never blocks on observability.
+### Data Model Entities
 
-Data Model
-Entities
-
-Run
+#### Run
 
 One end-to-end execution of a pipeline.
 
 Fields: run_id, pipeline, version, input_summary, timestamps.
 
-Step
+#### Step
 
 One logical decision boundary within a run.
 
 Fields: step_id, run_id, name, step_type, input_count, output_count, metadata.
 
-Decision (optional, sampled)
+#### Decision (optional, sampled)
 
 Per-candidate reasoning at a step.
 
@@ -79,9 +78,9 @@ Run (1)
  └─ Step (N)
       └─ Decision (0..N)
 
-Data Model Rationale
-
-Why this structure
+#### Data Model Rationale
+```
+Why this structure ?
 
 Mirrors real decision flows: candidates move through steps.
 
@@ -89,8 +88,10 @@ Separates execution context (Run), decision logic (Step), and reasoning (Decisio
 
 Supports partial observability: counts always; decisions optionally.
 
-Alternatives considered
+```
 
+#### Alternatives considered
+```
 Flat JSON logs → brittle queries.
 
 Tracing spans only → timing-focused, no decision semantics.
@@ -104,9 +105,11 @@ No Step entity → cannot localize failures.
 No standardized counts → cross-pipeline analytics fail.
 
 No Decision layer → must re-run pipelines to explain outcomes.
+```
 
-Debugging Walkthrough (Bad Match)
+#### Debugging Walkthrough (Bad Match)
 
+```
 Symptom: Phone case matched to a laptop stand.
 
 Find the run
@@ -129,8 +132,10 @@ Conclusion
 
 Root cause is upstream keyword generation, not ranking.
 
-Queryability (Across Pipelines)
+```
 
+#### Queryability (Across Pipelines)
+```
 Example question:
 “Show all runs where the filtering step eliminated >90% of candidates.”
 
@@ -143,17 +148,21 @@ step_type from a shared enum (e.g., filter, rank, retrieve, llm_eval)
 Mandatory input_count, output_count
 
 Query computes output_count / input_count across all step_type="filter".
+```
+#### Developer constraints
 
-Developer constraints
-
+```
 Use standardized step_type.
 
 Always provide counts.
 
 Use stable reason codes for decisions.
 
-Performance & Scale
+```
 
+#### Performance & Scale
+
+```
 Problem: Steps with thousands of candidates make full capture expensive.
 
 Approach: Tiered capture
@@ -184,16 +193,17 @@ Full instrumentation
 
 xray.record_decision(step_id, candidate_id, decision, reason)
 
+```
 
-Backend unavailable
+#### Backend unavailable
 
 SDK is fail-open: async sends, short timeouts, swallowed exceptions.
 
 Pipeline behavior is unchanged.
 
-Brief API Spec
+#### Brief API Spec
 
-Ingest
+##### Ingest
 
 POST /ingest/run
 
@@ -201,7 +211,7 @@ POST /ingest/step
 
 POST /ingest/decision
 
-Query
+##### Query
 
 GET /runs
 
@@ -213,7 +223,7 @@ GET /steps/{step_id}/decisions
 
 Aggregations via query params.
 
-Real-World Application
+### Real-World Application
 
 In a Python DOCX editing engine with sequential transformations, formatting bugs required replaying the entire pipeline.
 With X-Ray, each edit would be a Step with before/after counts and optional diffs, localizing the exact transformation that introduced corruption.
